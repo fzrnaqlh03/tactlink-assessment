@@ -166,7 +166,7 @@ The hosted web app must not use `localhost` as its API URL: that would point at 
 
 ## Submission links
 
-- GitHub repository: [fzrnaqlh03/tactlink-assessment](https://github.com/fzrnaqlh03/tactlink-assessment) (upload pending GitHub authentication).
+- GitHub repository: [fzrnaqlh03/tactlink-assessment](https://github.com/fzrnaqlh03/tactlink-assessment).
 - Live Vercel app: pending deployment access and a public HTTPS backend.
 - AWS backend link: not deployed; the permitted written-plan option is provided.
 

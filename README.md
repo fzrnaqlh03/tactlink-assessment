@@ -1,30 +1,36 @@
-# To-do assignment
+# To-do App — Software Engineer Assessment
 
-A small to-do application for the four tasks in the supplied software engineer test.
+A simple to-do app with a React Native mobile app, a React website and a shared GraphQL backend. Both apps let users log in, add tasks, view their list and delete tasks.
 
-## Task status
+## Live links
 
-| Task | Result |
-| --- | --- |
-| 1. Mobile | Expo app with email/password login, React Navigation, and create/view/delete tasks through GraphQL. |
-| 2. Backend | Apollo GraphQL server with dummy signup/login and user-scoped task CRUD. |
-| 3. Web | React app with the same login and task features, deployed at https://tactlink-assessment.vercel.app/. |
-| 4. AWS | GraphQL backend deployed on EC2 at https://52.73.18.155/. Architecture, services and cost are in [AWS-DEPLOYMENT.md](AWS-DEPLOYMENT.md). |
+- [Web app](https://tactlink-assessment.vercel.app/)
+- [GraphQL backend](https://52.73.18.155/)
+- [GitHub repository](https://github.com/fzrnaqlh03/tactlink-assessment)
 
-## Project folders
+Use this demo account on either app:
 
 ```text
-mobile/                React Native + Expo app
-backend/               Node.js + Apollo GraphQL API
-web/                   React + Vite web app
-AWS-DEPLOYMENT.md      AWS deployment plan
+Email: demo@example.com
+Password: password123
 ```
 
-## Setup
+The backend link opens an Apollo API page, not the to-do screen. The web app link above opens the actual app.
 
-Use Node.js 24 LTS and npm. Run the backend, web and mobile commands in separate terminals, starting from this repository's root.
+## Project structure
 
-### Backend
+```text
+mobile/               React Native + Expo
+backend/              Node.js + Apollo GraphQL
+web/                  React + Vite
+AWS-DEPLOYMENT.md     AWS setup, costs and server instructions
+```
+
+## Run locally
+
+Install Node.js 24 and npm first. Run each part in a separate terminal, starting from the project folder.
+
+### 1. Backend
 
 ```sh
 cd backend
@@ -32,35 +38,9 @@ npm ci
 npm start
 ```
 
-The API is available at `http://localhost:4000/`. Keep it running while using either app. `npm run dev` restarts the server when backend files change.
+The backend runs at `http://localhost:4000/`. Keep this terminal running when using the local API. Use `npm run dev` if you want the server to restart when you edit a backend file.
 
-Demo login for both apps:
-
-```text
-Email: demo@example.com
-Password: password123
-```
-
-### Mobile
-
-```sh
-cd mobile
-npm ci
-cp .env.example .env
-# Set EXPO_PUBLIC_API_URL in .env for your device before starting Expo.
-npm start
-```
-
-Open the QR code in an Expo Go version that supports SDK 57, or use an iOS/Android development environment compatible with that SDK.
-
-- iOS Simulator on this computer: `http://localhost:4000/`.
-- Android emulator: `http://10.0.2.2:4000/`.
-- Physical phone: `http://YOUR_COMPUTER_LAN_IP:4000/`. Keep the phone and computer on the same Wi-Fi and allow the backend port through your local firewall.
-- Hosted backend: set `EXPO_PUBLIC_API_URL=https://52.73.18.155/` in `mobile/.env`. This works across different Wi-Fi networks without running the backend on your Mac.
-
-Restart Expo after changing `.env`. Expo uses the `EXPO_PUBLIC_` prefix to include this value in the app. The URL is not a secret.
-
-### Web
+### 2. Web
 
 ```sh
 cd web
@@ -69,110 +49,120 @@ cp .env.example .env
 npm run dev
 ```
 
-Open the URL printed by Vite, normally `http://localhost:5173`. `VITE_API_URL` defaults to `http://localhost:4000/`. Restart Vite after changing `.env`.
+Open `http://localhost:5173/`, or the address printed in the terminal. The default API address is `http://localhost:4000/`.
 
-```sh
-# Run these inside web/ to build and preview the production app.
-npm run build
-npm run preview
+To use the deployed backend instead, set this in `web/.env` and restart Vite:
+
+```env
+VITE_API_URL=https://52.73.18.155/
 ```
 
-## How the code works
+To check the production build, run `npm run build` inside `web/`.
 
-- Each app keeps the login token in React state and sends it in the `Authorization: Bearer ...` header.
-- React Navigation switches the mobile app between login and tasks. The web app conditionally shows those same two views.
-- Each app has a small `src/api.js` helper that sends GraphQL requests with `fetch`. A larger client library is not needed for these few operations.
-- `backend/src/schema.js` defines the API. `backend/src/server.js` contains the in-memory data, dummy authentication and resolvers. `backend/src/index.js` starts the HTTP server.
-- The server looks up the user from its session token. It filters tasks by that user and checks task ownership before updating or deleting.
-- Signup and task updates are available through GraphQL, as requested for the backend. The app screens implement login and create/view/delete, as requested for mobile and web.
+### 3. Mobile
 
-The code uses plain JavaScript and comments at the main steps. JavaScript comments use `//` or `/* ... */`; shell and environment-file comments use `#`.
+```sh
+cd mobile
+npm ci
+cp .env.example .env
+```
 
-### Deliberate limits
+Set this in `mobile/.env` to use the deployed backend:
 
-Authentication is dummy authentication: passwords and session tokens are held in memory for this assessment. Do not use real passwords. All accounts, sessions and tasks reset when the backend restarts, apart from the seeded demo account. Refreshing the web page or restarting the mobile app requires logging in again. Logging out clears the app's token.
+```env
+EXPO_PUBLIC_API_URL=https://52.73.18.155/
+```
 
-There is no database, offline support, signup screen, task-editing screen, or UI component library. These are not required for the app screens.
+Then start Expo:
 
-## Try backend signup and updates
+```sh
+npm start -- --lan
+```
 
-The Apollo Sandbox at `http://localhost:4000/` can run these operations. Start by creating a user:
+Connect your phone and computer to the same Wi-Fi, then scan the QR code with an Expo Go version that supports SDK 57. Restart Expo after changing `.env`.
+
+To use a local backend instead, change the API URL to:
+
+- Physical phone: `http://YOUR_COMPUTER_WIFI_IP:4000/`
+- Android emulator: `http://10.0.2.2:4000/`
+- iOS Simulator on the same computer: `http://localhost:4000/`
+
+Your computer's Wi-Fi IP may change when you move to another network. The deployed backend URL stays the same.
+
+## Main decisions
+
+- **One backend for both apps:** mobile and web use the same GraphQL operations and user accounts.
+- **In-memory storage:** the assessment allows this, so users, sessions and tasks are stored in memory without a database.
+- **Dummy authentication:** login returns a token. The apps send it with task requests, and the server checks which user it belongs to.
+- **User-scoped tasks:** users only see their own tasks. The backend also checks ownership before updating or deleting a task.
+- **Simple frontend state:** React state holds the token, form inputs and task list. React Navigation handles the two mobile screens. Requests use `fetch`.
+- **EC2 for the backend:** one running server suits the in-memory storage. Nginx provides HTTPS, and systemd starts the backend after a reboot.
+
+The backend supports signup, login and full task CRUD, including updating a title. The mobile and web screens contain login and create/view/delete, as requested.
+
+## Try the GraphQL API
+
+With the backend running locally, open `http://localhost:4000/` to use Apollo Sandbox. Run this first:
 
 ```graphql
 mutation {
-  signup(email: "student@example.com", password: "test123") {
+  login(email: "demo@example.com", password: "password123") {
     token
-    user { id email }
   }
 }
 ```
 
-For task operations, add an HTTP header named `Authorization` with the value `Bearer YOUR_TOKEN` in Sandbox. The same account can log in through either app.
+Copy the returned token and add an HTTP header in Sandbox:
 
-```graphql
-mutation {
-  createTodo(title: "Read the requirements") { id title }
-}
+```text
+Authorization: Bearer YOUR_TOKEN
 ```
+
+Then run:
 
 ```graphql
 query {
-  todos { id title }
+  todos {
+    id
+    title
+  }
 }
 ```
 
-```graphql
-# Replace TASK_ID with the ID from createTodo or todos.
-mutation {
-  updateTodo(id: "TASK_ID", title: "Finish the first task") { id title }
-}
-```
+All available operations and their inputs are listed in `backend/src/schema.js`. A token from the local backend only works locally; use a login token from the hosted backend when querying the hosted API.
 
-```graphql
-mutation {
-  deleteTodo(id: "TASK_ID")
-}
-```
+## Testing
 
-## Checks
+Run the backend tests with:
 
 ```sh
 cd backend
 npm test
 ```
 
-The four automated API tests cover signup/login, full task CRUD, user isolation, missing/invalid tokens, invalid credentials, duplicate accounts and blank input.
+The four tests cover login/signup, task CRUD, user isolation and invalid input or tokens.
 
-Local verification completed:
+The web production build and Android/iOS bundle exports passed. Login, adding, viewing and deleting tasks were also checked on the live website. The mobile API requests passed against the hosted backend, but a full phone/simulator UI check is still outstanding.
 
-- All four backend tests passed.
-- Expo exported Android and iOS bundles successfully (`cd mobile` then `npx expo export --platform all`).
-- The mobile app's actual GraphQL helper passed login/create/list/delete against the running backend.
-- The web production build passed.
-- Chrome checks passed for invalid login, login, empty lists, blank task input, creation, loading saved tasks after logging in again, failed deletion, successful deletion, logout and page refresh. A 375px viewport had no horizontal overflow.
-- These browser checks also passed on the live Vercel site against the AWS backend. EC2 health checks and a simulated HTTPS certificate renewal passed.
+## Deployment
 
-The mobile UI still needs a hands-on check on a phone or simulator. The hosted AWS API also passed the mobile helper's login/create/list/delete check. During installation, npm reported 10 moderate findings in Expo's transitive Xcode/UUID tooling; its suggested fix would downgrade Expo to SDK 46, so that breaking change was not applied. Backend and web installation audits reported no vulnerabilities.
+The web app is hosted on Vercel with these settings:
 
-## Vercel deployment
+- Framework: Vite
+- Root directory: `web`
+- Build command: `npm run build`
+- Output directory: `dist`
+- Environment variable: `VITE_API_URL=https://52.73.18.155/`
 
-The live project is `tactlink-assessment` in the `fazreen` Vercel scope. To reproduce its setup:
+The backend runs on an AWS EC2 `t3.micro` instance in `us-east-1`. It has a stable public IP and an HTTPS certificate with automatic renewal. See [AWS-DEPLOYMENT.md](AWS-DEPLOYMENT.md) for the deployment steps, estimated cost and cleanup instructions.
 
-1. Use repository https://github.com/fzrnaqlh03/tactlink-assessment.
-2. Use backend `https://52.73.18.155/`. [AWS-DEPLOYMENT.md](AWS-DEPLOYMENT.md) explains its setup and management.
-3. Import the GitHub repository into Vercel. Select **Vite** and set the **Root Directory** to `web`.
-4. Use build command `npm run build` and output directory `dist`.
-5. Add `VITE_API_URL` with the backend's public HTTPS URL for the deployment environment, then deploy. Redeploy if this value changes because Vite embeds it during the build.
-6. Test login, add and delete on the live site, then record the live URL below.
+## Limitations
 
-The hosted web app must not use `localhost` as its API URL: that would point at the visitor's computer. See [Vercel's Vite deployment documentation](https://vercel.com/docs/frameworks/frontend/vite).
-
-## Submission links
-
-- GitHub repository: [fzrnaqlh03/tactlink-assessment](https://github.com/fzrnaqlh03/tactlink-assessment).
-- Live Vercel app: https://tactlink-assessment.vercel.app/.
-- AWS backend: https://52.73.18.155/.
+- Restarting the backend clears tasks, new accounts and sessions. The demo account is recreated on startup.
+- Refreshing the website or restarting the mobile app requires logging in again.
+- Authentication is only for this assessment. Use dummy passwords.
+- Expo's dependency audit reported moderate findings in its Xcode/UUID tooling. The suggested automatic fix would downgrade Expo, so it was not applied.
 
 ## Time taken
 
-Approximately 20 minutes for AI-assisted implementation and local verification on 24 September 2026, plus approximately 20 minutes for AWS/Vercel deployment and live verification after account access was available. This excludes account setup, sign-in waiting time and the candidate's own review. Record any additional time spent before submitting.
+The project was worked on during 24 September 2026, from around 11 AM to 6 PM. That is roughly 7 hours elapsed, including setup, implementation, testing, deployment, sign-in delays and troubleshooting. Active coding time was not tracked separately.

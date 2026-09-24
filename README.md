@@ -2,6 +2,8 @@
 
 A simple to-do app with a React Native mobile app, a React website and a shared GraphQL backend. Both apps let users log in, add tasks, view their list and delete tasks.
 
+All submission links and demo details are in [SUBMISSION.md](SUBMISSION.md).
+
 ## Live links
 
 - [Web app](https://tactlink-assessment.vercel.app/)

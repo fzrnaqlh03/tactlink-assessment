@@ -142,7 +142,7 @@ npm test
 
 The four tests cover login/signup, task CRUD, user isolation and invalid input or tokens.
 
-The web production build and Android/iOS bundle exports passed. Login, adding, viewing and deleting tasks were also checked on the live website. The mobile API requests passed against the hosted backend, but a full phone/simulator UI check is still outstanding.
+The web production build and Android/iOS bundle exports passed. Login, adding, viewing and deleting tasks were checked on the live website and manually in Expo Go on a phone. The mobile API requests also passed against the hosted backend.
 
 ## Deployment
 

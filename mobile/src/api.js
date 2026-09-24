@@ -1,3 +1,4 @@
+// Expo includes this public .env value in the app; do not put a secret here.
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/';
 
 // GraphQL sends the operation and its variables in one POST request.
@@ -8,6 +9,7 @@ export async function graphqlRequest(query, variables = {}, token = '') {
       'Content-Type': 'application/json',
       Authorization: token ? `Bearer ${token}` : '',
     },
+    // Variables hold values such as the task title, separate from the query text.
     body: JSON.stringify({ query, variables }),
   });
 

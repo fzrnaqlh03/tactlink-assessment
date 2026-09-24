@@ -4,10 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { graphqlRequest } from './api';
 
 export default function TodoScreen({ token, onLogout }) {
+  // State holds the displayed tasks, the typed title and the request status.
   const [todos, setTodos] = useState([]);
   const [title, setTitle] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  // Disable action buttons while an add or delete request is running.
   const [saving, setSaving] = useState(false);
 
   async function loadTodos() {
@@ -23,6 +25,7 @@ export default function TodoScreen({ token, onLogout }) {
     }
   }
 
+  // Fetch this user's tasks when the screen opens or the login token changes.
   useEffect(() => {
     loadTodos();
   }, [token]);
@@ -62,6 +65,7 @@ export default function TodoScreen({ token, onLogout }) {
         { id },
         token,
       );
+      // Keep every other task after the server confirms this one was deleted.
       setTodos((currentTodos) => currentTodos.filter((todo) => todo.id !== id));
     } catch (err) {
       setError(err.message);

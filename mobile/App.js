@@ -8,9 +8,11 @@ import TodoScreen from './src/TodoScreen';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  // An empty token shows login. Logging out clears it and returns to login.
   const [token, setToken] = useState('');
 
   return (
+    // SafeAreaProvider lets screens avoid the phone's screen edges and home bar.
     <SafeAreaProvider>
       <NavigationContainer>
         <Stack.Navigator>

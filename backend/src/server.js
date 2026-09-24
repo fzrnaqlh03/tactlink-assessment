@@ -7,9 +7,11 @@ export function createServer() {
   // These arrays reset whenever the server restarts, as allowed by the task.
   const users = [{ id: 'demo-user', email: 'demo@example.com', password: 'password123' }];
   const todos = [];
+  // Each entry connects a login token to the ID of the user who owns it.
   const sessions = new Map();
 
   function createSession(user) {
+    // Give the app a new token after a successful signup or login.
     const token = randomUUID();
     sessions.set(token, user.id);
     return { token, user };
@@ -24,6 +26,7 @@ export function createServer() {
   }
 
   function checkTitle(title) {
+    // trim() removes spaces at the ends, so a task made of only spaces is rejected.
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       throw new GraphQLError('Please enter a task.', {
@@ -44,16 +47,21 @@ export function createServer() {
     return todo;
   }
 
+  // Resolvers are the functions Apollo runs for the operations in schema.js.
+  // Arguments are: parent result (unused here), input values, and request context.
   const resolvers = {
     Query: {
       todos: (_, args, { userId }) => {
         requireUser(userId);
+        // Only return tasks belonging to the logged-in user.
         return todos.filter((todo) => todo.userId === userId);
       },
     },
     Mutation: {
       signup: (_, { email, password }) => {
+        // Store emails in lowercase so different capitalization is not a new account.
         const cleanEmail = email.trim().toLowerCase();
+        // This pattern checks for basic email parts: text, @, domain and a dot.
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail) || !password.trim()) {
           throw new GraphQLError('Enter a valid email and a non-empty password.', {
             extensions: { code: 'BAD_USER_INPUT' },
@@ -83,6 +91,7 @@ export function createServer() {
       },
       createTodo: (_, { title }, { userId }) => {
         requireUser(userId);
+        // Take the owner ID from the login session, not from user input.
         const todo = { id: randomUUID(), title: checkTitle(title), userId };
         todos.push(todo);
         return todo;
@@ -90,12 +99,14 @@ export function createServer() {
       updateTodo: (_, { id, title }, { userId }) => {
         requireUser(userId);
         const todo = findTodo(id, userId);
+        // findTodo returns the object in the array, so this changes the stored title.
         todo.title = checkTitle(title);
         return todo;
       },
       deleteTodo: (_, { id }, { userId }) => {
         requireUser(userId);
         const todo = findTodo(id, userId);
+        // Remove one item at the matching task's position in the array.
         todos.splice(todos.indexOf(todo), 1);
         return true;
       },
@@ -107,6 +118,7 @@ export function createServer() {
   // Resolve the token on the server; never trust a user ID supplied by the app.
   async function context({ req }) {
     const authorization = req.headers.authorization || '';
+    // Remove "Bearer " (7 characters) to get the token sent by the app.
     const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
     return { userId: sessions.get(token) };
   }

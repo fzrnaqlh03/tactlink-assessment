@@ -9,6 +9,7 @@ export default function LoginScreen({ onLogin }) {
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
+    // Check both fields before sending a request to the backend.
     if (!email.trim() || !password) {
       setError('Please enter your email and password.');
       return;
@@ -29,6 +30,7 @@ export default function LoginScreen({ onLogin }) {
     } catch (err) {
       setError(err.message);
     } finally {
+      // Re-enable the inputs after the request, including when it fails.
       setLoading(false);
     }
   }

@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { graphqlRequest } from './api';
 
 export default function TodoList({ token, onLogout }) {
+  // State holds the displayed tasks, the typed title and the request status.
   const [todos, setTodos] = useState([]);
   const [title, setTitle] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  // Disable action buttons while an add or delete request is running.
   const [saving, setSaving] = useState(false);
 
   async function loadTodos() {
@@ -21,6 +23,7 @@ export default function TodoList({ token, onLogout }) {
     }
   }
 
+  // Fetch this user's tasks when the screen opens or the login token changes.
   useEffect(() => {
     loadTodos();
   }, [token]);
@@ -57,6 +60,7 @@ export default function TodoList({ token, onLogout }) {
     setSaving(true);
     try {
       await graphqlRequest('mutation DeleteTodo($id: ID!) { deleteTodo(id: $id) }', { id }, token);
+      // Keep every other task. Do this only after the server confirms deletion.
       setTodos((currentTodos) => currentTodos.filter((todo) => todo.id !== id));
     } catch (err) {
       setError(err.message);
@@ -88,6 +92,7 @@ export default function TodoList({ token, onLogout }) {
 
       {loading ? <p role="status">Loading tasks...</p> : (
         <ul className="task-list">
+          {/* map() creates one row per task. Its ID keeps the React row identifiable. */}
           {todos.map((todo) => (
             <li key={todo.id}>
               <span>{todo.title}</span>

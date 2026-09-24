@@ -8,6 +8,7 @@ export default function LoginForm({ onLogin }) {
   const [loading, setLoading] = useState(false);
 
   async function handleLogin(event) {
+    // Handle the form in React instead of letting the browser reload the page.
     event.preventDefault();
     setError('');
     setLoading(true);
@@ -19,10 +20,12 @@ export default function LoginForm({ onLogin }) {
         }`,
         { email: email.trim(), password },
       );
+      // Pass the token to App so it can show the task screen.
       onLogin(data.login.token);
     } catch (err) {
       setError(err.message);
     } finally {
+      // Re-enable the form whether login succeeds or fails.
       setLoading(false);
     }
   }

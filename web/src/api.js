@@ -1,3 +1,4 @@
+// Vite reads the API URL from .env locally or from Vercel's build environment.
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/';
 
 export async function graphqlRequest(query, variables = {}, token = '') {
@@ -8,6 +9,7 @@ export async function graphqlRequest(query, variables = {}, token = '') {
       'Content-Type': 'application/json',
       Authorization: token ? `Bearer ${token}` : '',
     },
+    // Variables hold input values separately from the GraphQL operation text.
     body: JSON.stringify({ query, variables }),
   });
 
@@ -16,6 +18,7 @@ export async function graphqlRequest(query, variables = {}, token = '') {
   }
 
   const result = await response.json();
+  // A successful HTTP response can still contain a GraphQL error.
   if (result.errors) {
     throw new Error(result.errors[0].message);
   }

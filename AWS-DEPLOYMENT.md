@@ -1,63 +1,96 @@
-# Task 4: AWS deployment plan
+# Task 4: AWS deployment
 
-This is the written-plan option allowed by the assignment. No AWS resources have been created.
+The GraphQL backend is deployed on AWS EC2, completing the actual-deployment option in the assignment.
 
-## Architecture and services
+- Backend: https://52.73.18.155/
+- Web app: https://tactlink-assessment.vercel.app/
+- Region: US East (N. Virginia), `us-east-1`
+- Instance: `i-0bdb5fc64e59d9c7f`, named `tactlink-assessment`
+- Instance type: `t3.micro`, Ubuntu 24.04, 8 GB encrypted gp3 storage
+- Elastic IP allocation: `eipalloc-02eddacb8a44a43ab`
+- Security group: `sg-0049d88735726d6b5`
+
+## Architecture
 
 ```text
 Expo mobile app ──┐
-                 ├── HTTPS ── EC2: Caddy ── localhost:4000 ── Apollo Server
-React on Vercel ──┘                                              │
-                                                     In-memory users/tasks
+                 ├── HTTPS ── EC2: Nginx ── localhost:4000 ── Apollo Server
+React on Vercel ──┘                                                │
+                                                       In-memory users/tasks
 ```
 
-- One Linux `t3.micro` EC2 instance in `us-east-1` runs the existing Node.js backend.
-- An 8 GB gp3 EBS volume holds the operating system and application files.
-- One Elastic IP provides a stable public address. Point an existing domain's subdomain, such as `api.your-domain.com`, to it.
-- Caddy forwards HTTPS requests to Node.js and manages the TLS certificate.
-- A systemd service starts the backend on boot and restarts it if it stops.
+One Node.js 24 process runs the backend, managed by systemd so it starts after a reboot. Nginx handles HTTPS and forwards requests to Apollo Server. Port 4000 is not open to the internet.
 
-Keep one backend process because users, sessions and tasks are stored in memory. Restarting it clears these records and restores the demo account. EC2 lets this assignment run as written; separate Lambda instances would not share these arrays.
+The Elastic IP keeps the address stable. A Let's Encrypt IP-address certificate provides trusted HTTPS without buying a domain. Certbot checks for renewal twice daily and reloads Nginx after successful renewal. These certificates last about six days, so the renewal timer must stay enabled. See [Let's Encrypt IP certificates](https://letsencrypt.org/2026/03/11/shorter-certs-certbot).
 
-## Deployment steps
+Port 443 serves the API. Port 80 redirects to HTTPS and serves certificate validation files. SSH on port 22 is restricted to the deployment computer's public IP (`103.232.219.65/32` at setup).
 
-1. Launch an Ubuntu EC2 instance with the configuration above. Use T3 Standard CPU credit mode for this small demo to avoid surplus CPU credit charges. Attach an Elastic IP.
-2. In its security group, allow SSH on port 22 only from your own IP. Allow public HTTP/HTTPS on ports 80 and 443. Leave port 4000 closed to the internet.
-3. Connect using SSH. Install Node.js 24 LTS, npm, Git and Caddy. Clone the submitted repository into `/home/ubuntu/tactlink`.
-4. Run `npm ci` inside `/home/ubuntu/tactlink/backend`. Create `/etc/systemd/system/todo-backend.service`:
+## Deployment steps used
+
+1. Created a dedicated SSH key and security group in the default VPC.
+2. Launched one Ubuntu `t3.micro` with an encrypted 8 GB gp3 disk, required IMDSv2 and Standard CPU credit mode.
+3. Assigned the Elastic IP and installed Node.js 24 from the official Node.js downloads, verifying its published checksum.
+4. Uploaded the repository's `backend/` folder to `/opt/tactlink/backend` and ran `npm ci --omit=dev`.
+5. Enabled the `todo-backend` systemd service, running as the unprivileged `ubuntu` user.
+6. Installed Nginx and Certbot 5.8, obtained an IP-address certificate using the `shortlived` profile and webroot validation, and enabled `tactlink-cert-renew.timer`.
+7. Set Vercel's root directory to `web`, framework to Vite, and `VITE_API_URL` to `https://52.73.18.155/` for production and preview. Deployed the web app.
+
+## Server configuration
+
+The service at `/etc/systemd/system/todo-backend.service` is:
 
 ```ini
 [Unit]
-Description=To-do GraphQL backend
+Description=Assessment GraphQL backend
 After=network.target
 
 [Service]
 User=ubuntu
-WorkingDirectory=/home/ubuntu/tactlink/backend
-# Use the actual Node path reported by: command -v node
-ExecStart=/usr/bin/node src/index.js
+WorkingDirectory=/opt/tactlink/backend
+ExecStart=/usr/local/bin/node src/index.js
 Environment=PORT=4000
 Environment=NODE_ENV=production
 Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-5. Run `sudo systemctl daemon-reload` and `sudo systemctl enable --now todo-backend`. Check `sudo systemctl status todo-backend`.
-6. Point the API subdomain's DNS A record to the Elastic IP. Put this in `/etc/caddy/Caddyfile`, replacing the example domain:
+Nginx configuration is at `/etc/nginx/sites-available/tactlink`. It proxies HTTPS requests to `http://127.0.0.1:4000`, uses certificates from `/etc/letsencrypt/live/52.73.18.155/`, and serves ACME challenge files from `/var/www/certbot` over port 80.
 
-```caddyfile
-api.your-domain.com {
-    reverse_proxy 127.0.0.1:4000
-}
+The renewal timer runs at midnight and noon with up to 30 minutes of random delay. Its service runs `/opt/certbot/bin/certbot renew --quiet --deploy-hook "systemctl reload nginx"`.
+
+## Connect and manage
+
+The SSH private key is stored locally at `~/.ssh/tactlink-assessment`; it is not in GitHub.
+
+```sh
+# Connect from the allowed public IP address.
+ssh -i ~/.ssh/tactlink-assessment ubuntu@52.73.18.155
+
+# Run these commands on the EC2 server.
+sudo systemctl status todo-backend nginx tactlink-cert-renew.timer
+sudo journalctl -u todo-backend -n 50 --no-pager
+sudo systemctl list-timers tactlink-cert-renew.timer
+
+# Test renewal without replacing the live certificate.
+sudo /opt/certbot/bin/certbot renew --dry-run --run-deploy-hooks --no-random-sleep-on-renew
 ```
 
-7. Reload Caddy with `sudo systemctl reload caddy`. Caddy needs the domain to resolve to the instance and ports 80/443 reachable to set up HTTPS. See [Caddy automatic HTTPS](https://caddyserver.com/docs/automatic-https).
-8. Set `VITE_API_URL=https://api.your-domain.com/` in Vercel and redeploy the web app. Set `EXPO_PUBLIC_API_URL` to that same URL for mobile and restart Expo. These URLs are public configuration, not secrets.
-9. Verify login, task creation, viewing and deletion through the public web app. Create two API accounts and confirm their task lists are separate. The backend's automated tests cover the same isolation rules locally.
+If your public IP changes, update only the security group's SSH source to your new IP with `/32`. The public web app and mobile API continue to work across different networks.
 
-The Vercel page needs an HTTPS backend to avoid browser mixed-content blocking. Apollo's standalone server already permits cross-origin requests; each task request must still supply a valid token. Dummy authentication is for this assessment only.
+To update backend code, upload the updated `backend/` files to `/opt/tactlink/backend`, run `npm ci --omit=dev` there, then run `sudo systemctl restart todo-backend`. Do not upload local `.env` files, `node_modules`, or private keys.
+
+## Verification
+
+- Both AWS instance health checks passed.
+- Public GraphQL requests succeed over HTTPS with normal certificate validation.
+- The mobile GraphQL helper passed login, create, list and delete against the hosted API.
+- Live Chrome checks passed for login, invalid credentials, task creation, loading saved tasks, deletion, failed-request handling and logout.
+- A simulated certificate renewal, including the Nginx reload hook, passed.
+
+Authentication and data storage remain the assessment's dummy auth and in-memory implementation. Restarting the backend clears tasks, new accounts and sessions, and restores the demo account. Use assessment data only.
 
 ## Estimated cost
 
@@ -72,6 +105,10 @@ Estimate checked on 24 September 2026, using Linux on-demand pricing in US East 
 
 Sources: [AWS T3 pricing](https://aws.amazon.com/ec2/instance-types/t3/), [AWS EBS volume pricing](https://aws.amazon.com/ebs/volume-types/), and [AWS public IPv4 pricing](https://aws.amazon.com/vpc/pricing/).
 
-This estimate excludes taxes, domain registration, paid DNS hosting, data transfer charges beyond applicable allowances, and backups. It assumes an existing domain/DNS provider and a small demonstration workload. Confirm the selected region and current rates in the [AWS Pricing Calculator](https://calculator.aws/).
+This estimate excludes taxes, data transfer charges beyond applicable allowances, and backups. No domain, load balancer or database was purchased. It assumes a small demonstration workload. Confirm the selected region and current rates in the [AWS Pricing Calculator](https://calculator.aws/).
 
-After the assessment, terminate the instance, remove any retained EBS volumes and release the Elastic IP to stop ongoing charges.
+## Remove after the assessment
+
+In the AWS console, select `us-east-1`, terminate instance `i-0bdb5fc64e59d9c7f` and release Elastic IP `eipalloc-02eddacb8a44a43ab`. Its root disk is configured to delete on termination; confirm no assessment volumes remain. The dedicated security group and key-pair registration can then be deleted.
+
+Stopping the instance alone does not remove storage or Elastic IP charges. Removing these resources makes the live app's backend unavailable.

@@ -1,0 +1,7 @@
+# Only the web app needs to be uploaded to Vercel.
+mobile/
+backend/
+AWS-DEPLOYMENT.md
+README.md
+.env*
+**/.env*

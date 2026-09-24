@@ -8,8 +8,8 @@ A small to-do application for the four tasks in the supplied software engineer t
 | --- | --- |
 | 1. Mobile | Expo app with email/password login, React Navigation, and create/view/delete tasks through GraphQL. |
 | 2. Backend | Apollo GraphQL server with dummy signup/login and user-scoped task CRUD. |
-| 3. Web | React app with the same login and task features. Builds locally; Vercel deployment is pending account access and a hosted backend. |
-| 4. AWS | Written deployment plan, including architecture, services and cost, in [AWS-DEPLOYMENT.md](AWS-DEPLOYMENT.md). |
+| 3. Web | React app with the same login and task features, deployed at https://tactlink-assessment.vercel.app/. |
+| 4. AWS | GraphQL backend deployed on EC2 at https://52.73.18.155/. Architecture, services and cost are in [AWS-DEPLOYMENT.md](AWS-DEPLOYMENT.md). |
 
 ## Project folders
 
@@ -56,7 +56,7 @@ Open the QR code in an Expo Go version that supports SDK 57, or use an iOS/Andro
 - iOS Simulator on this computer: `http://localhost:4000/`.
 - Android emulator: `http://10.0.2.2:4000/`.
 - Physical phone: `http://YOUR_COMPUTER_LAN_IP:4000/`. Keep the phone and computer on the same Wi-Fi and allow the backend port through your local firewall.
-- Hosted backend: use its public HTTPS URL.
+- Hosted backend: set `EXPO_PUBLIC_API_URL=https://52.73.18.155/` in `mobile/.env`. This works across different Wi-Fi networks without running the backend on your Mac.
 
 Restart Expo after changing `.env`. Expo uses the `EXPO_PUBLIC_` prefix to include this value in the app. The URL is not a secret.
 
@@ -150,13 +150,16 @@ Local verification completed:
 - The mobile app's actual GraphQL helper passed login/create/list/delete against the running backend.
 - The web production build passed.
 - Chrome checks passed for invalid login, login, empty lists, blank task input, creation, loading saved tasks after logging in again, failed deletion, successful deletion, logout and page refresh. A 375px viewport had no horizontal overflow.
+- These browser checks also passed on the live Vercel site against the AWS backend. EC2 health checks and a simulated HTTPS certificate renewal passed.
 
-The mobile UI still needs a hands-on check on a phone or simulator. No live deployment has been verified. During installation, npm reported 10 moderate findings in Expo's transitive Xcode/UUID tooling; its suggested fix would downgrade Expo to SDK 46, so that breaking change was not applied. Backend and web installation audits reported no vulnerabilities.
+The mobile UI still needs a hands-on check on a phone or simulator. The hosted AWS API also passed the mobile helper's login/create/list/delete check. During installation, npm reported 10 moderate findings in Expo's transitive Xcode/UUID tooling; its suggested fix would downgrade Expo to SDK 46, so that breaking change was not applied. Backend and web installation audits reported no vulnerabilities.
 
 ## Vercel deployment
 
-1. Publish these folders to the GitHub repository once access is provided.
-2. Make the backend reachable over HTTPS. [AWS-DEPLOYMENT.md](AWS-DEPLOYMENT.md) describes how to host the existing backend on EC2.
+The live project is `tactlink-assessment` in the `fazreen` Vercel scope. To reproduce its setup:
+
+1. Use repository https://github.com/fzrnaqlh03/tactlink-assessment.
+2. Use backend `https://52.73.18.155/`. [AWS-DEPLOYMENT.md](AWS-DEPLOYMENT.md) explains its setup and management.
 3. Import the GitHub repository into Vercel. Select **Vite** and set the **Root Directory** to `web`.
 4. Use build command `npm run build` and output directory `dist`.
 5. Add `VITE_API_URL` with the backend's public HTTPS URL for the deployment environment, then deploy. Redeploy if this value changes because Vite embeds it during the build.
@@ -167,9 +170,9 @@ The hosted web app must not use `localhost` as its API URL: that would point at 
 ## Submission links
 
 - GitHub repository: [fzrnaqlh03/tactlink-assessment](https://github.com/fzrnaqlh03/tactlink-assessment).
-- Live Vercel app: pending deployment access and a public HTTPS backend.
-- AWS backend link: not deployed; the permitted written-plan option is provided.
+- Live Vercel app: https://tactlink-assessment.vercel.app/.
+- AWS backend: https://52.73.18.155/.
 
 ## Time taken
 
-Approximately 20 minutes for AI-assisted implementation and local verification on 24 September 2026. This excludes GitHub/Vercel publishing, AWS provisioning and the candidate's own review. Record any additional time spent before submitting.
+Approximately 20 minutes for AI-assisted implementation and local verification on 24 September 2026, plus approximately 20 minutes for AWS/Vercel deployment and live verification after account access was available. This excludes account setup, sign-in waiting time and the candidate's own review. Record any additional time spent before submitting.

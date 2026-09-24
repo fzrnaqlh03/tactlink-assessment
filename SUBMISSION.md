@@ -35,9 +35,3 @@ Open the live web app, log in with the demo account, add a task and delete it. F
 Backend tests and the web build passed. Login, adding, viewing and deleting tasks were checked on the live website and in Expo Go on a phone.
 
 The AWS link opens the GraphQL API landing page. Use the web app link to see the to-do interface. Data is stored in memory and resets when the backend restarts, as permitted by the assessment.
-
-## Before sending
-
-- Give the assessor access to the private GitHub repository, or make it public if appropriate.
-- Confirm the README's time estimate reflects the time spent on the project.
-- Keep the AWS backend running until the review is complete.

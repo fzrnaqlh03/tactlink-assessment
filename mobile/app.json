@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "To-Do",
+    "slug": "candidate-todo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light"
+  }
+}

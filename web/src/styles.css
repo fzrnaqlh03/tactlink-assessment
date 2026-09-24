@@ -1,0 +1,130 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 48px 16px;
+  background: #f3f4f6;
+  color: #1f2937;
+  font-family: Arial, sans-serif;
+}
+
+/* One small card is enough for both the login and task screens. */
+.card {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 28px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+}
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.description {
+  margin: 16px 0 24px;
+  color: #555;
+  line-height: 1.5;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+input {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 18px;
+  padding: 12px;
+  border: 1px solid #888;
+  border-radius: 4px;
+  font: inherit;
+}
+
+button {
+  padding: 11px 16px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #2459bb;
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(0.9);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 3px solid #7aa7ff;
+  outline-offset: 2px;
+}
+
+.login-button {
+  width: 100%;
+}
+
+header,
+.task-form,
+.task-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+header {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.task-form input {
+  flex: 1;
+  margin: 0;
+}
+
+.secondary {
+  background: white;
+  border-color: #aaa;
+  color: #333;
+}
+
+.error {
+  color: #b42318;
+  line-height: 1.5;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+
+.task-list li {
+  padding: 14px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.task-list span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.delete {
+  background: white;
+  border-color: #e4b0aa;
+  color: #b42318;
+}

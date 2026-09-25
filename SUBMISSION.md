@@ -8,9 +8,11 @@ The four tasks are included in the repository below. The web app and GraphQL bac
 | --- | --- |
 | GitHub repository | [tactlink-assessment](https://github.com/fzrnaqlh03/tactlink-assessment) |
 | Live web app | [tactlink-assessment.vercel.app](https://tactlink-assessment.vercel.app/) |
-| AWS GraphQL backend | [https://52.73.18.155/](https://52.73.18.155/) |
+| AWS GraphQL API — backend endpoint | [https://52.73.18.155/](https://52.73.18.155/) |
 | Setup, architecture decisions and time taken | [README.md](README.md) |
 | AWS deployment steps and estimated cost | [AWS-DEPLOYMENT.md](AWS-DEPLOYMENT.md) |
+
+The AWS link opens the GraphQL API landing page. To try the to-do app, use the live web app link above.
 
 ## Demo account
 
@@ -34,4 +36,4 @@ Open the live web app, log in with the demo account, add a task and delete it. F
 
 Backend tests and the web build passed. Login, adding, viewing and deleting tasks were checked on the live website and in Expo Go on a phone.
 
-The AWS link opens the GraphQL API landing page. Use the web app link to see the to-do interface. Data is stored in memory and resets when the backend restarts, as permitted by the assessment.
+Data is stored in memory and resets when the backend restarts, as permitted by the assessment.
